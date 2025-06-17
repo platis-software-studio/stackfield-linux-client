@@ -1,4 +1,4 @@
-# Stackfield Desktop App
+# Stackfield Desktop App for Linux
 
 A feature-rich Electron-based desktop application for Stackfield with advanced screen sharing capabilities, smart notifications, and professional UI.
 
