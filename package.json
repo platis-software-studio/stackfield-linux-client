@@ -1,62 +1,16 @@
 {
-  "name": "stackfield-linux-client",
+  "name": "stackfield-electron",
   "version": "1.0.0",
-  "description": "A lightweight Electron desktop app for Stackfield",
+  "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "electron . --dev",
-    "build": "electron-builder",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder --publish=never"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/platis-software-studio/stackfield-linux-client.git"
-  },
-  "keywords": [
-    "stackfield",
-    "electron",
-    "desktop",
-    "notifications",
-    "system-tray",
-    "messaging"
-  ],
-  "author": "PLATIS GmbH <info@platis.de>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/platis-software-studio/stackfield-linux-client/issues"
-  },
-  "homepage": "https://github.com/platis-software-studio/stackfield-linux-client#readme",
-  "dependencies": {
-    "electron": "^latest"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "electron-builder": "^latest"
-  },
-  "build": {
-    "appId": "com.platis-software-studio.stackfield-Linux-Client",
-    "productName": "Stackfield Desktop",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "icon.png",
-      "icon-alert.png",
-      "package.json"
-    ],
-    "mac": {
-      "icon": "icon.png",
-      "category": "public.app-category.productivity"
-    },
-    "win": {
-      "icon": "icon.png",
-      "target": "nsis"
-    },
-    "linux": {
-      "icon": "icon.png",
-      "category": "Office"
-    }
+    "electron": "^36.4.0"
   }
 }
