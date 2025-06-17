@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, Tray, nativeImage, shell, systemPreferences, desktopCapturer, session } = require('electron');
 const path = require('path');
 
 let win;
@@ -29,11 +29,111 @@ app.whenReady().then(() => {
     height: 800,
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      // These settings are crucial for media access to work
+      allowRunningInsecureContent: false,
+      webSecurity: true,
+      // Enable media features
+      experimentalFeatures: true
     },
     icon: normalIconPath,
     show: false
   });
+
+  // THIS IS THE KEY PART - Set up the display media request handler BEFORE loading the page
+  win.webContents.session.setDisplayMediaRequestHandler((request, callback) => {
+    desktopCapturer.getSources({
+      types: ['screen', 'window'],
+      thumbnailSize: { width: 150, height: 150 }
+    }).then((sources) => {
+      console.log('Available sources:', sources.length);
+
+      // For debugging - log all available sources
+      sources.forEach(source => {
+        console.log(`Source: ${source.name} (${source.id})`);
+      });
+
+      // Find the first screen source or use the first available source
+      const screenSource = sources.find(source => source.id.startsWith('screen:')) || sources[0];
+
+      if (screenSource) {
+        console.log('Using source:', screenSource.name);
+        // Grant access to the selected screen with audio loopback
+        callback({
+          video: screenSource,
+          audio: 'loopback'
+        });
+      } else {
+        console.log('No sources available');
+        callback({});
+      }
+    }).catch((error) => {
+      console.error('Error getting desktop sources:', error);
+      callback({});
+    });
+  }, {
+    // Use system picker if available (this is experimental but might help)
+    useSystemPicker: false
+  });
+
+  // Handle standard permission requests for camera and microphone
+  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    console.log('Permission requested:', permission);
+
+    const allowedPermissions = [
+      'camera',
+      'microphone',
+      'display-capture',
+      'media',
+      'geolocation',
+      'notifications'
+    ];
+
+    if (allowedPermissions.includes(permission)) {
+      console.log('Granting permission:', permission);
+      callback(true);
+    } else {
+      console.log('Denying permission:', permission);
+      callback(false);
+    }
+  });
+
+  // Handle media permissions separately (this is crucial for getUserMedia)
+  win.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+    console.log('Permission check:', permission, 'from:', requestingOrigin);
+
+    const allowedPermissions = [
+      'camera',
+      'microphone',
+      'display-capture',
+      'media'
+    ];
+
+    return allowedPermissions.includes(permission);
+  });
+
+  // Request system permissions on macOS
+  if (process.platform === 'darwin') {
+    // Request camera permission
+    systemPreferences.askForMediaAccess('camera').then((granted) => {
+      console.log('Camera access:', granted ? 'granted' : 'denied');
+    });
+
+    // Request microphone permission
+    systemPreferences.askForMediaAccess('microphone').then((granted) => {
+      console.log('Microphone access:', granted ? 'granted' : 'denied');
+    });
+
+    // Check screen recording permission
+    const screenAccess = systemPreferences.getMediaAccessStatus('screen');
+    console.log('Screen recording access:', screenAccess);
+
+    if (screenAccess !== 'granted') {
+      console.log('⚠️  Screen recording permission needed!');
+      console.log('Please grant permission in System Preferences > Security & Privacy > Screen Recording');
+      console.log('Then restart the application.');
+    }
+  }
 
   // Show window when ready
   win.once('ready-to-show', () => {
@@ -42,6 +142,54 @@ app.whenReady().then(() => {
 
   // Load Stackfield website
   win.loadURL('https://www.stackfield.com');
+
+  // Add some debugging for when the page loads
+  win.webContents.once('did-finish-load', () => {
+    console.log('Page loaded, media access should now work');
+
+    // Inject some debugging code to test media access
+    win.webContents.executeJavaScript(`
+      console.log('Checking media capabilities:');
+      console.log('- getUserMedia available:', !!navigator.mediaDevices?.getUserMedia);
+      console.log('- getDisplayMedia available:', !!navigator.mediaDevices?.getDisplayMedia);
+      
+      // Test camera/microphone access
+      window.testCameraMic = async function() {
+        try {
+          console.log('Testing camera/microphone access...');
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          console.log('Camera/Microphone access success!', stream);
+          return stream;
+        } catch (error) {
+          console.error('Camera/Microphone access failed:', error);
+          throw error;
+        }
+      };
+      
+      // Test screen sharing
+      window.testScreenShare = async function() {
+        try {
+          console.log('Testing screen share...');
+          const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true
+          });
+          console.log('Screen share success!', stream);
+          return stream;
+        } catch (error) {
+          console.error('Screen share failed:', error);
+          throw error;
+        }
+      };
+      
+      console.log('Test functions added:');
+      console.log('- Test camera/mic: window.testCameraMic()');
+      console.log('- Test screen share: window.testScreenShare()');
+    `);
+  });
 
   // Handle new window creation - open external links in browser
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -54,7 +202,7 @@ app.whenReady().then(() => {
   win.webContents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
     const currentUrl = new URL(win.webContents.getURL());
-    
+
     // If navigating to a different domain, open in browser instead
     if (parsedUrl.hostname !== currentUrl.hostname && parsedUrl.hostname !== 'www.stackfield.com' && parsedUrl.hostname !== 'stackfield.com') {
       event.preventDefault();
@@ -103,7 +251,7 @@ app.whenReady().then(() => {
   // Function to check for personal notifications
   function checkForPersonalNotifications() {
     if (win.isDestroyed()) return;
-    
+
     // This code runs inside the Stackfield webpage to look for notifications
     win.webContents.executeJavaScript(`
       (function() {
