@@ -1,15 +1,17 @@
 const { app, BrowserWindow, Tray, nativeImage, shell, Menu } = require('electron');
 const path = require('path');
-const ScreenSharingManager = require('./screenSharingManager');
-const NotificationManager = require('./notificationManager');
-const MenuManager = require('./menuManager');
-const DebugManager = require('./debugManager');
+const ScreenSharingManager = require('./src/screen-sharing/screenSharingManager');
+const NotificationManager = require('./src/managers/notificationManager');
+const MenuManager = require('./src/managers/menuManager');
+const DebugManager = require('./src/managers/debugManager');
+const ClipboardManager = require('./src/managers/clipboardManager');
 
 let win;
 let tray;
 let screenSharingManager;
 let notificationManager;
 let debugManager;
+let clipboardManager;
 
 // Prevent multiple instances of the app
 const gotTheLock = app.requestSingleInstanceLock();
@@ -27,8 +29,8 @@ if (!gotTheLock) {
 app.whenReady().then(() => {
   console.log('App is ready, starting setup...');
   
-  const normalIconPath = path.join(__dirname, 'icon.png');
-  const alertIconPath = path.join(__dirname, 'icon-alert.png');
+  const normalIconPath = path.join(__dirname, 'assets', 'icon.png');
+  const alertIconPath = path.join(__dirname, 'assets', 'icon-alert.png');
 
   console.log('Creating main window...');
   
@@ -42,7 +44,8 @@ app.whenReady().then(() => {
       allowRunningInsecureContent: false,
       webSecurity: true,
       experimentalFeatures: true,
-      devTools: true
+      devTools: true,
+      preload: path.join(__dirname, 'preload.js')
     },
     icon: normalIconPath,
     show: false
@@ -55,11 +58,15 @@ app.whenReady().then(() => {
     debugManager = new DebugManager(win);
     screenSharingManager = new ScreenSharingManager(win, debugManager);
     notificationManager = new NotificationManager(win, normalIconPath, alertIconPath, debugManager);
+    clipboardManager = new ClipboardManager(win, debugManager);
     
     console.log('Managers initialized, setting up screen sharing...');
     
     // Set up screen sharing
     screenSharingManager.setup();
+
+    // Set up clipboard handling
+    clipboardManager.setupIPC();
 
     console.log('Setting up permissions...');
     

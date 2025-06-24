@@ -1,16 +1,106 @@
 {
-  "name": "stackfield-electron",
-  "version": "1.0.0",
-  "description": "",
+  "name": "stackfield-linux-client",
+  "version": "1.1.0",
+  "description": "A lightweight Electron desktop application for Stackfield",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "dev": "electron . --enable-logging",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "dist": "npm run build",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "stackfield",
+    "electron",
+    "desktop",
+    "screen-sharing",
+    "notifications",
+    "productivity"
+  ],
+  "author": "PLATIS GmbH <info@platis.de>",
+  "license": "MIT",
   "devDependencies": {
-    "electron": "^36.4.0"
-  }
+    "electron": "^36.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.platis-software-studio.stackfield-linux-client",
+    "productName": "Stackfield Linux Client",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*",
+      "scripts/install-deps.sh",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "assets/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Office",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "depends": ["xclip", "wl-clipboard"],
+      "afterInstall": "scripts/install-deps.sh"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/platis-software-studio/stackfield-linux-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/platis-software-studio/stackfield-linux-client/issues"
+  },
+  "homepage": "https://github.com/platis-software-studio/stackfield-linux-client#readme"
 }
