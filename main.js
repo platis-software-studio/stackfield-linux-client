@@ -13,6 +13,11 @@ let notificationManager;
 let debugManager;
 let clipboardManager;
 
+// Set explicit WM_CLASS for Linux desktop integration
+if (process.platform === 'linux') {
+  app.setName('stackfield-electron');
+}
+
 // Prevent multiple instances of the app
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -29,8 +34,18 @@ if (!gotTheLock) {
 app.whenReady().then(() => {
   console.log('App is ready, starting setup...');
   
-  const normalIconPath = path.join(__dirname, 'assets', 'icon.png');
-  const alertIconPath = path.join(__dirname, 'assets', 'icon-alert.png');
+  // Handle icon paths for both development and production
+  let normalIconPath, alertIconPath;
+  
+  if (app.isPackaged) {
+    // Production: Icons are unpacked next to app.asar
+    normalIconPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'assets', 'icon.png');
+    alertIconPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'assets', 'icon-alert.png');
+  } else {
+    // Development: Icons are in assets folder
+    normalIconPath = path.join(__dirname, 'assets', 'icon.png');
+    alertIconPath = path.join(__dirname, 'assets', 'icon-alert.png');
+  }
 
   console.log('Creating main window...');
   
@@ -50,6 +65,12 @@ app.whenReady().then(() => {
     icon: normalIconPath,
     show: false
   });
+  
+  // Set the app's window class name for Linux taskbar integration
+  if (process.platform === 'linux') {
+    win.setIcon(normalIconPath);
+    console.log('Linux desktop integration enabled');
+  }
 
   console.log('Main window created, initializing managers...');
 
@@ -75,7 +96,7 @@ app.whenReady().then(() => {
 
     console.log('Creating menu...');
     
-    // Create application menu with debug manager
+    // Create application menu
     const menu = MenuManager.createMenu(win, debugManager);
     Menu.setApplicationMenu(menu);
 
@@ -114,7 +135,14 @@ app.whenReady().then(() => {
   // Create system tray
   const trayIcon = nativeImage.createFromPath(normalIconPath);
   tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
-  tray.setToolTip('Stackfield');
+  
+  // Dynamic tooltip based on notifications
+  const updateTrayTooltip = (hasNotifications) => {
+    const tooltip = hasNotifications ? 'Stackfield - You have new messages!' : 'Stackfield';
+    tray.setToolTip(tooltip);
+  };
+  
+  updateTrayTooltip(false);
 
   // Create context menu for tray
   const contextMenu = Menu.buildFromTemplate([
@@ -137,6 +165,7 @@ app.whenReady().then(() => {
     {
       label: 'Quit',
       click: () => {
+        app.isQuitting = true;
         app.quit();
       }
     }
@@ -146,10 +175,11 @@ app.whenReady().then(() => {
 
   // Connect tray to notification manager
   notificationManager.setTray(tray);
+  notificationManager.setTrayTooltipUpdater(updateTrayTooltip);
 
   // Handle left click on tray
   tray.on('click', () => {
-    if (win.isVisible()) {
+    if (win.isVisible() && win.isFocused()) {
       win.hide();
     } else {
       win.show();
@@ -165,6 +195,19 @@ app.whenReady().then(() => {
     if (!app.isQuitting) {
       event.preventDefault();
       win.hide();
+    }
+  });
+
+  // Handle app quit events
+  app.on('before-quit', () => {
+    app.isQuitting = true;
+  });
+
+  // Handle Ctrl+Q / Cmd+Q globally
+  app.on('activate', () => {
+    if (win) {
+      win.show();
+      win.focus();
     }
   });
 
@@ -196,6 +239,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
-// Remove the unused function
-// function setupSystemTray() was removed

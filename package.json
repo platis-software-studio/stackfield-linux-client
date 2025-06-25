@@ -1,14 +1,16 @@
 {
-  "name": "stackfield-linux-client",
-  "version": "1.1.0",
-  "description": "A lightweight Electron desktop application for Stackfield",
+  "name": "stackfield-electron",
+  "version": "1.1.2",
+  "description": "An Electron desktop application for Stackfield",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --enable-logging",
+    "start-test": "electron main-test.js",
+    "dev": "electron . --enable-logging", 
+    "dev-test": "electron main-test.js --enable-logging",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
+    "build:mac": "electron-builder --mac", 
     "build:linux": "electron-builder --linux",
     "build:all": "electron-builder --win --mac --linux",
     "dist": "npm run build",
@@ -31,17 +33,25 @@
   },
   "build": {
     "appId": "com.platis-software-studio.stackfield-linux-client",
-    "productName": "Stackfield Linux Client",
+    "productName": "Stackfield",
     "directories": {
       "output": "dist"
     },
     "files": [
       "main.js",
+      "main-test.js",
       "preload.js",
       "src/**/*",
-      "assets/**/*",
       "scripts/install-deps.sh",
-      "package.json"
+      "package.json",
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["**/*"]
+      }
+    ],
+    "asarUnpack": [
+      "assets/**/*"
     ],
     "mac": {
       "category": "public.app-category.productivity",
@@ -69,8 +79,9 @@
       ]
     },
     "linux": {
-      "icon": "assets/icon.png",
+      "icon": "assets/",
       "category": "Office",
+      "executableName": "stackfield-electron",
       "target": [
         {
           "target": "AppImage",
@@ -85,8 +96,23 @@
           ]
         }
       ],
+      "desktop": {
+        "Name": "Stackfield (Electron)",
+        "Comment": "An Electron desktop application for Stackfield",
+        "GenericName": "Stackfield Client",
+        "Icon": "stackfield-electron",
+        "Type": "Application",
+        "Categories": "Office;ProjectManagement;Network;",
+        "MimeType": "x-scheme-handler/stackfield;",
+        "Keywords": "stackfield;collaboration;project;management;",
+        "StartupWMClass": "stackfield-electron",
+        "StartupNotify": "true"
+      },
+      "publish": null
+    },
+    "deb": {
       "depends": ["xclip", "wl-clipboard"],
-      "afterInstall": "scripts/install-deps.sh"
+      "afterInstall": "scripts/post-install-simple.sh"
     },
     "nsis": {
       "oneClick": false,
