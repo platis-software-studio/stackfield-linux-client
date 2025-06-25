@@ -4,25 +4,25 @@ An Electron-based desktop application for Stackfield that provides native Linux 
 
 ## Features
 
-### 🔔 Smart Notification System
+### Notification System
 - **Visual Tray Icon Alerts**: System tray icon changes between normal and alert states
 - **Taskbar Icon Flashing**: Window flashes in taskbar when new messages arrive
 - **Desktop Notifications**: Native Linux notifications for new messages
 - **Dynamic Tray Tooltips**: Tooltip updates to show notification status
 - **Auto-Detection**: Automatically detects personal messages and direct messages
 
-### 🎥 Screen Sharing
+### Screen Sharing
 - Full desktop screen sharing support
 - Individual window sharing
 - Optimized for Stackfield's collaboration features
 
-### 🖱️ System Integration
+### System Integration
 - **System Tray**: Minimizes to tray with right-click context menu
 - **Single Instance**: Prevents multiple app instances
 - **Proper Quit Behavior**: Clean exit via menu, tray, or Ctrl+Q
 - **Linux Desktop Integration**: Proper Window Class and desktop file integration
 
-### 📋 Enhanced Features
+### Enhanced Features
 - Clipboard handling for better copy/paste experience
 - External link handling (opens in system browser)
 - Zoom controls (Ctrl +, Ctrl -, Ctrl 0)
@@ -49,7 +49,7 @@ An Electron-based desktop application for Stackfield that provides native Linux 
    sudo apt install -f
    ```
 4. **Launch the application**:
-   - From Applications menu: Look for \"Stackfield (Electron)\"
+   - From Applications menu: Look for "Stackfield (Electron)"
    - From terminal: `/opt/Stackfield/stackfield-electron`
 
 ### From Source
@@ -83,7 +83,7 @@ An Electron-based desktop application for Stackfield that provides native Linux 
 - **Icon States**: 
   - Normal: Default Stackfield icon
   - Alert: Red alert icon when new messages arrive
-  - Tooltip: Shows \"You have new messages!\" during alerts
+  - Tooltip: Shows "You have new messages!" during alerts
 
 ### Notification Behavior
 The app automatically monitors for:
@@ -92,10 +92,10 @@ The app automatically monitors for:
 - Red badge indicators in Stackfield interface
 
 When notifications are detected:
-1. 🔴 Tray icon changes to alert state
-2. ⚡ Taskbar icon flashes
-3. 🔔 Desktop notification appears
-4. 💬 Tray tooltip updates
+1. Tray icon changes to alert state
+2. Taskbar icon flashes
+3. Desktop notification appears
+4. Tray tooltip updates
 
 ### Keyboard Shortcuts
 - **Ctrl+Q**: Quit application
@@ -213,12 +213,12 @@ For issues and feature requests, please use the GitHub issue tracker.
 ## Changelog
 
 ### Version 1.1.2
-- ✅ Fixed taskbar icon notifications for all Linux desktop environments
-- ✅ Added dynamic tray tooltips
-- ✅ Improved desktop notifications
-- ✅ Enhanced quit functionality
-- ✅ Better icon handling in packaged applications
-- ✅ Proper Window Class integration for Cinnamon/GNOME/KDE
+- Fixed taskbar icon notifications for all Linux desktop environments
+- Added dynamic tray tooltips
+- Improved desktop notifications
+- Enhanced quit functionality
+- Better icon handling in packaged applications
+- Proper Window Class integration for Cinnamon/GNOME/KDE
 
 ### Version 1.1.1
 - Added notification detection system
